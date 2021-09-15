@@ -1,25 +1,37 @@
-import logo from './logo.svg';
+import React,{useEffect} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
+import HomeScreen from './HomeScreen';
+import {login, logout, selectUser} from './features/userSlice';
+import { getAuth, onAuthStateChanged} from "firebase/auth";
+import Login from './Login';
+
+
 import './App.css';
 
 function App() {
+  const user = useSelector(selectUser);
+  const dispatch = useDispatch();
+
+  useEffect(()=>{
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+       if (user) {
+          dispatch(login({
+            uid:user.uid,
+            email:user.email
+          }))
+       } else {
+          dispatch(logout);
+       }
+      });
+    return unsubscribe;
+  },[])
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    {!user ? (<Login/>) : (<HomeScreen/>)}
     </div>
-  );
+  )
 }
 
 export default App;
